@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "mongodb"
+  url       = env("DATABASE_URL")
+}
+
+model Servicio {
+  id    String @id @default(cuid()) @map("_id")
+  title String
+  desc  String
+}
+
+model Creacion {
+  id    String @id @default(cuid()) @map("_id")
+  title String
+  url   String
+}
+
+model Asesoramiento {
+  id      String @id @default(cuid()) @map("_id")
+  title   String
+  desc    String
+  content String
+}
+
+model Planos {
+  id       String @id @default(cuid()) @map("_id")
+  title    String
+  desc     String
+  size     String
+  bathroom Int
+  room     Int
+  garage   Int
+  suites   Int
+  images   String[]
+  files    File[]
+  price    String
+}
+
+model Contacto {
+  id       String @id @default(cuid()) @map("_id")
+  email    String
+  fullname String
+  subject  String
+  message  String
+}
+
+model File {
+  id       String @id @default(cuid()) @map("_id")
+  url      String
+  name     String
+  planos   Planos? @relation(fields: [planosId], references: [id])
+  planosId String?
+}
+
+model Size {
+  id   String @id @default(cuid()) @map("_id")
+  size String
+}
