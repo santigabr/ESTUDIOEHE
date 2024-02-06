@@ -21,6 +21,7 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "@prisma/client": "^5.9.0"
+    "@prisma/client": "^5.9.0",
+    "@vercel/blob": "^0.20.0"
   }
 }

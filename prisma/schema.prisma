@@ -27,17 +27,17 @@ model Asesoramiento {
 }
 
 model Planos {
-  id       String @id @default(cuid()) @map("_id")
-  title    String
-  desc     String
-  size     String
-  bathroom Int
-  room     Int
-  garage   Int
-  suites   Int
-  images   String[]
-  files    File[]
-  price    String
+  id        String @id @default(cuid()) @map("_id")
+  title     String
+  desc      String
+  size      String
+  bathrooms Int
+  rooms     Int
+  garages   Int
+  suites    Int
+  images    String[]
+  files     File[]
+  price     String
 }
 
 model Contacto {

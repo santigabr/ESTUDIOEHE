@@ -57,7 +57,7 @@ const menu = ref(false)
       </div>
     </header>
   </div>
-  <div v-if="menu === true" class="absolute sm:hidden top-0 h-full px-6 bg-gris-900/30 backdrop-blur-lg w-full">
+  <div v-if="menu === true" class="absolute sm:hidden top-0 h-full z-40 px-6 bg-gris-900/30 backdrop-blur-lg w-full">
     <div class="h-64px flex items-center justify-end">
       <button class="" @click="menu = !menu">
         <UnoIcon class="i-ph-x w-25px h-25px buttons" />
