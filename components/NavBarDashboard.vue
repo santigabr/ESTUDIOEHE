@@ -32,7 +32,7 @@ const menu = ref(false)
 </script>
 
 <template>
-  <div class="backdrop-blur-sm sticky top-0">
+  <div class="backdrop-blur-sm sticky z-30 top-0">
     <header class="max-w-1200px mx-auto h-64px py-2 px-6 flex justify-between flex items-center">
       <NuxtLink to="/dashboard" class="text-xl font-bold">
         Dashboard

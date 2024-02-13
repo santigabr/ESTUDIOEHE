@@ -1,8 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{ data: { id: string, size: string }[] | null }>()
-
 const { data: planos, refresh, pending } = await useFetch('/api/planos')
-const { data: planosfiles, refresh: refreshplanos } = await useFetch('/api/files')
 
 const addmenu = ref(false)
 const images = ref<string[]>([])
@@ -18,6 +16,8 @@ const garages = ref(0)
 const price = ref('')
 const deleting = ref(false)
 const adding = ref(false)
+const showimages = ref(false)
+const imagesId = ref<string[]>([])
 
 const errors = ref({
   title: '',
@@ -30,10 +30,18 @@ const errors = ref({
 
 function uploadImage(event: Event, index: number) {
   const inputElement = event.target as HTMLInputElement
+
   if (inputElement.files) {
     const file = inputElement.files[0]
-    if (file)
-      images.value[index] = URL.createObjectURL(file)
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = function () {
+        const base64String = (reader.result as string).split(',')[1]
+        const preparedBase64String = `data:${file.type};base64,${base64String}`
+        images.value[index] = preparedBase64String
+      }
+      reader.readAsDataURL(file)
+    }
   }
 }
 
@@ -59,24 +67,33 @@ async function add() {
   const hasErrors = Object.values(errors.value).some(error => error !== '')
 
   if (!hasErrors) {
-    await $fetch('/api/planos', {
+    adding.value = true
+
+    const uploadedImages = await $fetch('/api/images', {
       method: 'POST',
-      body: {
-        title: title.value,
-        desc: desc.value,
-        size: size.value,
-        bathrooms: bathrooms.value,
-        rooms: rooms.value,
-        garages: garages.value,
-        suites: suites.value,
-        images: images.value,
-        files: files.value,
-        price: price.value,
-      },
+      body: images.value,
     })
 
+    if (uploadedImages) {
+      await $fetch('/api/planos', {
+
+        method: 'POST',
+        body: {
+          title: title.value,
+          desc: desc.value,
+          size: size.value,
+          bathrooms: bathrooms.value,
+          rooms: rooms.value,
+          garages: garages.value,
+          suites: suites.value,
+          images: uploadedImages,
+          files: files.value,
+          price: price.value,
+        },
+
+      })
+    }
     refresh()
-    refreshplanos()
     title.value = ''
     desc.value = ''
     size.value = ''
@@ -87,28 +104,27 @@ async function add() {
     images.value = []
     files.value = []
     price.value = ''
+    adding.value = false
     addmenu.value = false
   }
 }
 
-async function del(id: string) {
-  const filesToDelete = planosfiles.value?.filter(file => file.planosId === id).map(file => file.id)
-
-  if (filesToDelete) {
-    await Promise.all(
-      filesToDelete.map(async (file) => {
-        await fetch(`/api/files/${file}`, {
-          method: 'DELETE',
-        })
-      }),
-    )
-  }
-
+async function del(id: string, images: string[]) {
+  deleting.value = true
+  await $fetch('/api/images', {
+    body: images,
+    method: 'DELETE',
+  })
   await $fetch(`/api/planos/${id}`, {
     method: 'DELETE',
   })
-
   refresh()
+  deleting.value = false
+}
+
+function showImages(images: string[]) {
+  showimages.value = true
+  imagesId.value = images
 }
 </script>
 
@@ -133,18 +149,20 @@ async function del(id: string) {
       <div v-for="plano in planos" :key="plano.id" class="bg-gris-900/30 grid gap-2 p-4 rounded-lg">
         <h2>{{ plano.title }}</h2>
         <p>{{ plano.desc }}</p>
-        <img v-for="img in plano.images" :key="img" :src="img">
-        <NuxtLink v-for="file in planosfiles?.filter(file => file.planosId === plano.id)" :key="file.id" :to="file.url" target="_BLANK">
-          {{ file.name }}
-        </NuxtLink>
+        <button @click="showImages(plano.images)">
+          Ver Imagenes
+        </button>
+
         <button
-          @click="del(plano.id)"
+          @click="del(plano.id, plano.images)"
         >
           Eliminar
         </button>
       </div>
     </div>
   </div>
+
+  <PlanosImagesModal :show="showimages" :images="imagesId" @close="showimages = false" />
 
   <Modal v-if="addmenu">
     <div class="flex justify-between">
@@ -157,14 +175,14 @@ async function del(id: string) {
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Titulo</label>
-      <Input v-model="title" />
+      <Input v-model="title" :disabled="pending || adding" />
       <div v-if="errors.title" class="text-red text-sm font-medium flex gap-1 items-center">
         <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.title }} .
       </div>
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Descripción</label>
-      <Input v-model="desc" />
+      <Input v-model="desc" :disabled="pending || adding" />
       <div v-if="errors.desc" class="text-red text-sm font-medium flex gap-1 items-center">
         <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.desc }} .
       </div>
@@ -175,21 +193,21 @@ async function del(id: string) {
         No hay tamaños disponibles
       </div>
       <div v-else class="flex flex-row items-stretch flex-initial flex-wrap gap-2">
-        <button v-for="s in props.data" :key="s.id" class="bg-gris-900 flex gap-1 items-center rounded-full px-3 py-2" @click="size === s.size ? size = '' : size = s.size">
+        <button v-for="s in props.data" :key="s.id" :disabled="pending || adding || deleting" class="bg-gris-900 flex gap-1 items-center rounded-full px-3 py-2" @click="size === s.size ? size = '' : size = s.size">
           {{ s.size }}
           <UnoIcon v-if="size === s.size" class="i-ph-x-bold h-4 w-4" />
         </button>
       </div>
     </div>
-    <Counter :value="bathrooms" label="Baños" @update:value="bathrooms = $event" />
-    <Counter :value="rooms" label="Habitaciones" @update:value="rooms = $event" />
-    <Counter :value="garages" label="Garages" @update:value="garages = $event" />
-    <Counter :value="suites" label="Suites" @update:value="suites = $event" />
+    <Counter :disabled="pending || adding || deleting" :value="bathrooms" label="Baños" @update:value="bathrooms = $event" />
+    <Counter :disabled="pending || adding || deleting" :value="rooms" label="Habitaciones" @update:value="rooms = $event" />
+    <Counter :disabled="pending || adding || deleting" :value="garages" label="Garages" @update:value="garages = $event" />
+    <Counter :disabled="pending || adding || deleting" :value="suites" label="Suites" @update:value="suites = $event" />
     <div class="grid gap-3">
       <label class="text-sm font-medium">Imágenes (hasta 5)</label>
       <div class="grid sm:grid-cols-3 grid-cols-2 gap-3">
         <div v-for="(square, index) in squares" :key="index">
-          <input :id="`file${index}`" type="file" class="hidden" @change="uploadImage($event, index)">
+          <input :id="`file${index}`" :disabled="pending || adding" type="file" class="hidden" @change="uploadImage($event, index)">
           <label :for="`file${index}`">
             <div class="bg-gris-900/30 h-30 rounded-lg grid place-content-center overflow-hidden" :class="[!images[index] ? 'hover:bg-gris-900 transition-colors duration-200' : '']">
               <img v-if="images[index]" :src="images[index]" alt="Imagen subida" class="z-2 transition-all duration-200 hover:opacity-40 hover:blur-sm object-contain w-full h-full">
@@ -205,7 +223,7 @@ async function del(id: string) {
     <div class="grid gap-3">
       <label class="text-sm font-medium">Archivos</label>
       <div class="flex gap-2">
-        <input id="pdf" type="file" class="hidden" @change="uploadPDF($event)">
+        <input id="pdf" :disabled="pending || adding" type="file" class="hidden" @change="uploadPDF($event)">
         <label for="pdf" class="bg-gris-900/30 grid place-content-center hover:bg-gris-900 rounded-lg h-10 w-10">
           <UnoIcon class="i-ph-plus-bold" />
         </label>
@@ -219,12 +237,12 @@ async function del(id: string) {
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Precio</label>
-      <Input v-model="price" />
+      <Input v-model="price" :disabled="pending || adding" />
       <div v-if="errors.price" class="text-red text-sm font-medium flex gap-1 items-center">
         <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.price }} .
       </div>
     </div>
-    <Button start rlg @click="add">
+    <Button :disabled="pending || adding" start rlg @click="add">
       Agregar
     </Button>
   </Modal>

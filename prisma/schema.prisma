@@ -11,6 +11,7 @@ model Servicio {
   id    String @id @default(cuid()) @map("_id")
   title String
   desc  String
+  image String
 }
 
 model Creacion {
@@ -36,7 +37,7 @@ model Planos {
   garages   Int
   suites    Int
   images    String[]
-  files     File[]
+  files     String[]
   price     String
 }
 
@@ -46,14 +47,6 @@ model Contacto {
   fullname String
   subject  String
   message  String
-}
-
-model File {
-  id       String @id @default(cuid()) @map("_id")
-  url      String
-  name     String
-  planos   Planos? @relation(fields: [planosId], references: [id])
-  planosId String?
 }
 
 model Size {

@@ -3,7 +3,7 @@ import prisma from '../utils/prisma'
 export default defineEventHandler(async (event) => {
   const id = event.context.params?.id
 
-  await prisma.file.delete({
+  await prisma.servicio.delete({
     where: {
       id,
     },

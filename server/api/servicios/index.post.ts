@@ -4,18 +4,15 @@ export default defineEventHandler(async (event) => {
   try {
     const data = await readBody(event)
 
-    if (!data.title || !data.desc || !data.images || !data.files || !data.price)
+    if (!data.title || !data.desc || !data.image)
       throw new Error('Faltan datos necesarios')
 
-    await prisma.planos.create({
-      data: {
-        ...data,
-        files: ['asd', 'das'],
-      },
+    await prisma.servicio.create({
+      data,
     })
   }
   catch (error) {
-    console.error('Error al crear el plano:', error)
+    console.error('Error al crear el servicio:', error)
     throw createError({
       statusCode: 500,
       statusMessage: 'Error interno del servidor',
