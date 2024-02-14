@@ -70,11 +70,18 @@ async function add() {
         No hay servicios disponibles
       </div>
       <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1 mb-5">
-        <div v-for="(creacion) in creaciones" :key="creacion.id" class="grid p-2 gap-2 bg-gris-900/30 rounded-lg">
-          <div class="p-2 grid place-content-center h-40">
-            <NuxtLink class="font-medium" :to="creacion.url" target="_BLANK">
-              {{ creacion.title.toLocaleUpperCase() }}
-            </NuxtLink>
+        <div v-for="(creacion) in creaciones" :key="creacion.id" class="relative grid p-2 gap-2 bg-gris-900/30 rounded-lg">
+          <NuxtLink class="p-2 grid place-content-center h-40 font-medium z-1" :to="creacion.url" target="_BLANK">
+            {{ creacion.title.toLocaleUpperCase() }}
+          </NuxtLink>
+
+          <div class="absolute top-0 right-0 p-2 bg-gris-900 rounded-b-lg rounded-tr-lg z-2">
+            <button class="text-gray-300 pr-2 border-r-2 text-sm border-gris-700" @click="edit(creacion.id)">
+              Editar
+            </button>
+            <button class="text-red-500 hover:text-red-700 text-sm pl-2" @click="del(creacion.id)">
+              Eliminar
+            </button>
           </div>
         </div>
       </div>
