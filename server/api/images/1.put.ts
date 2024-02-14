@@ -13,20 +13,25 @@ export default defineEventHandler(async (event) => {
 
     const uniquePublicId = `${Date.now()}`
 
-    await cloudinary.uploader.destroy(`EstudioEHE/${data.editImage}`)
+    if (data.image !== data.editimage) {
+      await cloudinary.uploader.destroy(`EstudioEHE/${data.editimage}`)
 
-    cloudinary.uploader.upload(data.image, {
-      public_id: uniquePublicId,
-      folder: 'EstudioEHE',
-      width: 400,
-      height: 300,
-      crop: 'fill',
-      format: 'webp',
-    }).catch((error) => {
-      console.error('Error al subir la imagen:', error)
-    })
+      cloudinary.uploader.upload(data.image, {
+        public_id: uniquePublicId,
+        folder: 'EstudioEHE',
+        width: 400,
+        height: 300,
+        crop: 'fill',
+        format: 'webp',
+      }).catch((error) => {
+        console.error('Error al subir la imagen:', error)
+      })
 
-    return uniquePublicId
+      return uniquePublicId
+    }
+    else {
+      return data.editimage
+    }
   }
   catch (error) {
     console.error('Error al crear la imagen:', error)

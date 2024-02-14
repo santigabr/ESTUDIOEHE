@@ -1,10 +1,5 @@
 <script setup lang="ts">
-interface Servicio {
-  id?: string
-  title: string
-  desc: string
-  image: string
-}
+import type { Servicio } from '~/types'
 
 const { data: servicios, refresh, pending } = await useFetch('/api/servicios')
 
@@ -146,7 +141,7 @@ async function edit(id: string) {
 
     const editingImage = await $fetch('/api/images/1', {
       method: 'PUT',
-      body: { editimage: editImage, image: editData.value.image },
+      body: { editimage: editImage.value, image: editData.value.image },
     })
 
     if (editingImage) {

@@ -5,7 +5,7 @@ const { data: planos, refresh, pending } = await useFetch('/api/planos')
 const addmenu = ref(false)
 const images = ref<string[]>([])
 const squares = ref<Array<string | null>>(Array(5).fill(null))
-const files = ref<{ url: string, name: string }[]>([])
+const files = ref<string[]>([])
 const title = ref('')
 const desc = ref('')
 const size = ref('')
@@ -45,12 +45,12 @@ function uploadImage(event: Event, index: number) {
   }
 }
 
-function uploadPDF(event: Event) {
+function uploadFile(event: Event) {
   const inputElement = event.target as HTMLInputElement
   if (inputElement.files) {
     const file = inputElement.files[0]
     if (file)
-      files.value.push({ url: URL.createObjectURL(file), name: file.name })
+      files.value.push(URL.createObjectURL(file))
   }
 }
 
@@ -74,7 +74,12 @@ async function add() {
       body: images.value,
     })
 
-    if (uploadedImages) {
+    const uploadedFiles = await $fetch('/api/images', {
+      method: 'POST',
+      body: files.value,
+    })
+
+    if (uploadedImages && uploadedFiles) {
       await $fetch('/api/planos', {
 
         method: 'POST',
@@ -87,7 +92,7 @@ async function add() {
           garages: garages.value,
           suites: suites.value,
           images: uploadedImages,
-          files: files.value,
+          files: uploadedFiles,
           price: price.value,
         },
 
@@ -223,13 +228,13 @@ function showImages(images: string[]) {
     <div class="grid gap-3">
       <label class="text-sm font-medium">Archivos</label>
       <div class="flex gap-2">
-        <input id="pdf" :disabled="pending || adding" type="file" class="hidden" @change="uploadPDF($event)">
+        <input id="pdf" :disabled="pending || adding" type="file" class="hidden" @change="uploadFile($event)">
         <label for="pdf" class="bg-gris-900/30 grid place-content-center hover:bg-gris-900 rounded-lg h-10 w-10">
           <UnoIcon class="i-ph-plus-bold" />
         </label>
       </div>
-      <div v-for="(pdf, index) in files" :key="index" class="grid gap-1">
-        <a :href="pdf.url" target="_blank" class="text-blue-600">{{ pdf.name }}</a>
+      <div v-for="(file, index) in files" :key="index" class="grid gap-1">
+        <a :href="file" target="_blank" class="text-blue-600">{{ index + 1 }}</a>
       </div>
       <div v-if="errors.files" class="text-red text-sm font-medium flex gap-1 items-center">
         <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.files }} .

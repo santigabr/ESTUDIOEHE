@@ -10,7 +10,6 @@ export default defineEventHandler(async (event) => {
     await prisma.planos.create({
       data: {
         ...data,
-        files: ['asd', 'das'],
       },
     })
   }
