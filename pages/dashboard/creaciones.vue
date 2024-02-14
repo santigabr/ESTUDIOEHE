@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data: creaciones, refresh, pending } = await useFetch('/api/servicios')
+const { data: creaciones, refresh, pending } = await useFetch('/api/creaciones')
 definePageMeta({
   layout: 'dashboard',
 })
@@ -16,6 +16,38 @@ const errors = ref({
 
 const addmenu = ref(false)
 const adding = ref(false)
+const deleting = ref(false)
+
+async function add() {
+  errors.value = {
+    title: data.value.title === '' ? 'Coloca un titulo' : '',
+    url: data.value.url === '' ? 'Coloca un url' : '',
+  }
+
+  const hasErrors = Object.values(errors.value).some(error => error !== '')
+
+  if (!hasErrors) {
+    adding.value = true
+
+    await $fetch('/api/creaciones', {
+
+      method: 'POST',
+      body: {
+        title: data.value.title,
+        url: data.value.url,
+      },
+
+    })
+
+    refresh()
+    data.value = {
+      title: '',
+      url: '',
+    }
+    adding.value = false
+    addmenu.value = false
+  }
+}
 </script>
 
 <template>
@@ -29,6 +61,22 @@ const adding = ref(false)
           Add
           <UnoIcon class="i-ph-plus-bold h-4 w-4" />
         </Button>
+      </div>
+
+      <div v-if="pending || deleting || adding" class="text-center pt-5">
+        Cargando...
+      </div>
+      <div v-else-if="!pending && !deleting && creaciones?.length === 0" class="text-center pt-5">
+        No hay servicios disponibles
+      </div>
+      <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1 mb-5">
+        <div v-for="(creacion) in creaciones" :key="creacion.id" class="grid p-2 gap-2 bg-gris-900/30 rounded-lg">
+          <div class="p-2 grid place-content-center h-40">
+            <NuxtLink class="font-medium" :to="creacion.url" target="_BLANK">
+              {{ creacion.title.toLocaleUpperCase() }}
+            </NuxtLink>
+          </div>
+        </div>
       </div>
     </div>
   </div>
