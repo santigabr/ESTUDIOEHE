@@ -182,7 +182,11 @@ async function del(id: string, image: string) {
 
 function editMenu(servicio: Servicio) {
   menu.value = true
-  editData.value = servicio
+  editData.value = {
+    title: servicio.title,
+    desc: servicio.desc,
+    image: servicio.image,
+  }
   editImage.value = servicio.image
   if (servicio.id)
     editId.value = servicio.id
@@ -229,7 +233,7 @@ function editMenu(servicio: Servicio) {
             </div>
             <div class="relative inline-block text-left" @click="open[index] = !open[index]">
               <div>
-                <button type="button" class="inline-flex justify-center w-full rounded-md px-4 py-2 bg-gris-800 text-sm font-medium">
+                <button type="button" class="inline-flex justify-center w-full rounded-md px-4 py-2 bg-gris-900 border-gris-900 border text-sm font-medium">
                   Acciones
                   <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 12a2 2 0 110-4 2 2 0 010 4zm0-6a2 2 0 110-4 2 2 0 010 4zm0 12a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd" />
@@ -237,7 +241,7 @@ function editMenu(servicio: Servicio) {
                 </button>
               </div>
 
-              <div v-show="open[index]" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gris-800 ring-1 ring-black ring-opacity-5">
+              <div v-show="open[index]" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gris-900 ring-1 ring-black ring-opacity-5">
                 <div class="py-1" role="menu" aria-orientation="vertical">
                   <a href="#" class="block px-4 py-2 text-sm hover:bg-gris-700" role="menuitem" @click="editMenu(servicio)">Editar</a>
                   <a href="#" class="block px-4 py-2 text-sm hover:bg-gris-700" role="menuitem" @click="del(servicio.id, servicio.image)">Eliminar</a>
