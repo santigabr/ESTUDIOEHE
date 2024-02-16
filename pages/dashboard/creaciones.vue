@@ -92,6 +92,15 @@ async function edit(id: string) {
   }
 }
 
+async function del(id: string) {
+  deleting.value = true
+  await $fetch(`/api/creaciones/${id}`, {
+    method: 'DELETE',
+  })
+  refresh()
+  deleting.value = false
+}
+
 function editing(creacion: { id: string, title: string, url: string }) {
   editmenu.value = true
   editData.value = {
@@ -119,7 +128,7 @@ function editing(creacion: { id: string, title: string, url: string }) {
         Cargando...
       </div>
       <div v-else-if="!pending && !deleting && creaciones?.length === 0" class="text-center pt-5">
-        No hay servicios disponibles
+        No hay creaciones disponibles
       </div>
       <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1 mb-5">
         <div v-for="(creacion) in creaciones" :key="creacion.id" class="relative grid gap-2 bg-gris-900/30 rounded-lg">
