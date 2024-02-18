@@ -1,25 +1,39 @@
-<script setup>
+<script setup lang="ts">
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import { BubbleMenu, FloatingMenu } from '@tiptap/vue-3'
 
+const props = defineProps<{ modelValue: string, image?: boolean }>()
+
+const emit = defineEmits(['update:modelValue'])
+
 const editor = useEditor({
-  content: `<div contenteditable="true" translate="no" class="tiptap ProseMirror" tabindex="0" />`,
+  content: props.modelValue,
   extensions: [StarterKit, Image],
+  onUpdate: ({ editor }) => {
+    emit('update:modelValue', editor.getHTML())
+  },
 })
 
-const uploadImage = (event) => {
-  const file = event.target.files[0]
-  const reader = new FileReader()
+const fileInput = ref<HTMLInputElement | null>(null)
 
-  reader.onload = (e) => {
-    editor.chain().focus().setImage({ src: e.target.result }).run()
+function addImage() {
+  fileInput.value?.click()
+}
+
+function onFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (file && editor.value) {
+    const reader = new FileReader()
+    reader.onload = function (e) {
+      const result = e.target?.result
+      if (typeof result === 'string')
+        editor.value?.chain().focus().setImage({ src: result }).run()
+    }
+    reader.readAsDataURL(file)
   }
-
-  reader.readAsDataURL(file)
 }
 </script>
-
 
 <template>
   <div class="z-0 flex items-center">
@@ -53,10 +67,13 @@ const uploadImage = (event) => {
         <button class="flex items-center bg-gris-500 text-white text-sm border-r p-2 rounded-sm mx-1" :class="{ 'bg-slate-200': editor.isActive('orderedList') }" @click="editor.chain().focus().toggleOrderedList().run()">
           <UnoIcon class="i-bi-list-ol w-1em h-1em" />
         </button>
-        <input type="file" @change="uploadImage">
+        <button v-if="props.image" class="flex items-center bg-gris-500 text-white text-sm border-r p-2 rounded-sm mx-1" @click="addImage">
+          <UnoIcon class="i-bi-image w-1em h-1em" />
+        </button>
+        <input v-if="props.image" ref="fileInput" type="file" class="hidden" @change="onFileChange">
       </FloatingMenu>
       <div class="px-4 prose lg:prose-md max-w-full">
-        <TiptapEditorContent :editor="editor"/>
+        <TiptapEditorContent :editor="editor" />
       </div>
     </div>
   </div>

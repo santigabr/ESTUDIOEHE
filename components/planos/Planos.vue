@@ -187,7 +187,7 @@ function showImages(images: string[]) {
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Descripción</label>
-      <Input v-model="desc" :disabled="pending || adding" />
+      <TipTap v-model="desc" :disabled="pending || adding" />
       <div v-if="errors.desc" class="text-red text-sm font-medium flex gap-1 items-center">
         <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.desc }} .
       </div>
@@ -198,7 +198,7 @@ function showImages(images: string[]) {
         No hay tamaños disponibles
       </div>
       <div v-else class="flex flex-row items-stretch flex-initial flex-wrap gap-2">
-        <button v-for="s in props.data" :key="s.id" :disabled="pending || adding || deleting" class="bg-gris-900 flex gap-1 items-center rounded-full px-3 py-2" @click="size === s.size ? size = '' : size = s.size">
+        <button v-for="s in props.data" :key="s.id" :disabled="pending || adding || deleting" class="bg-gris-900 flex gap-1 items-center rounded-full px-2 py-1" @click="size === s.size ? size = '' : size = s.size">
           {{ s.size }}
           <UnoIcon v-if="size === s.size" class="i-ph-x-bold h-4 w-4" />
         </button>
