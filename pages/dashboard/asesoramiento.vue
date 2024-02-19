@@ -19,6 +19,9 @@ const errors = ref({
 const addmenu = ref(false)
 const adding = ref(false)
 const deleting = ref(false)
+const content = ref('')
+const viewcontent = ref(false)
+const editmenu = ref(false)
 
 async function add() {
   errors.value = {
@@ -42,8 +45,11 @@ async function add() {
       })
 
       let newContent = data.value.content
+
       for (let i = 0; i < base64Images.length; i++)
-        newContent = newContent.replace(base64Images[i], images[i])
+        newContent = newContent.replace(base64Images[i], `https://res.cloudinary.com/dy4qbq4wj/image/upload/EstudioEHE/${images[i]}`)
+
+      newContent = newContent.replace(/<p><\/p>/g, '')
 
       await $fetch('/api/asesoramientos', {
         method: 'POST',
@@ -84,6 +90,11 @@ async function del(id: string) {
   refresh()
   deleting.value = false
 }
+
+function view(contentstring: string) {
+  viewcontent.value = true
+  content.value = contentstring
+}
 </script>
 
 <template>
@@ -106,11 +117,17 @@ async function del(id: string) {
       </div>
       <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1 mb-5">
         <div v-for="asesoramiento in asesoramientos" :key="asesoramiento.id" class="relative grid gap-2 bg-gris-900/30 rounded-lg p-4 ">
-          <p>{{ asesoramiento.title }}</p>
-          <p>{{ asesoramiento.desc }}</p>
-          <div v-html="asesoramiento.content" />
+          <h2 class="font-medium text-lg">
+            {{ asesoramiento.title }}
+          </h2>
+          <p class="text-white/70">
+            {{ asesoramiento.desc }}
+          </p>
           <div class="place-self-center p-2 bg-gris-900 rounded-lg z-2 px-3">
-            <button class="text-gray-300 pr-2 border-r-2 text-sm border-gris-700" @click="editing(creacion)">
+            <button class="text-gray-300 pr-2 border-r-2 text-sm border-gris-700" @click="view(asesoramiento.content)">
+              Ver mas
+            </button>
+            <button class="text-gray-300 pl-2 pr-2 border-r-2 text-sm border-gris-700" @click="editing(creacion)">
               Editar
             </button>
             <button class="text-red-500 hover:text-red-700 text-sm pl-2" @click="del(asesoramiento.id)">
@@ -121,6 +138,15 @@ async function del(id: string) {
       </div>
     </div>
   </div>
+
+  <Modal v-if="viewcontent" top0>
+    <div class="grid">
+      <button class=" place-self-end" @click="viewcontent = !viewcontent">
+        <UnoIcon class="i-ph-x-bold h-5 w-5" />
+      </button>
+    </div>
+    <div class="prose" v-html="content" />
+  </Modal>
 
   <Modal v-if="addmenu">
     <div class="flex justify-between">
@@ -160,3 +186,9 @@ async function del(id: string) {
     </Button>
   </Modal>
 </template>
+
+<style>
+.prose img{
+  border-radius: 0.5rem;
+}
+</style>

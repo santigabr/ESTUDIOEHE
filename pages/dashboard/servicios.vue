@@ -212,22 +212,21 @@ function editMenu(servicio: Servicio) {
         No hay servicios disponibles
       </div>
       <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1 mb-5">
-        <div v-for="(servicio, index) in servicios" :key="servicio.id" class="grid p-2 sm:grid-rows-[1fr_auto] gap-2 bg-gris-900/30 rounded-lg">
-          <div class="grid gap-2 pt-3 px-3">
-            <div class="flex flex-col items-start">
-              <h2 class="font-medium text-lg">
-                {{ servicio.title }}
-              </h2>
-              <p class="text-white/70">
-                {{ servicio.desc.length > 100 ? `${servicio.desc.substring(0, 100)}...` : servicio.desc }}
-              </p>
-              <button v-if="servicio.desc.length > 100" class="text-blue-500 hover:opacity-80" @click="readMoreFunc(servicio.id, servicio.desc)">
-                Leer mas .
-              </button>
-            </div>
+        <div v-for="(servicio, index) in servicios" :key="servicio.id" class="grid p-4 sm:grid-rows-[1fr_auto] gap-2 bg-gris-900/30 rounded-lg">
+          <div class="flex flex-col items-start">
+            <h2 class="font-medium text-lg">
+              {{ servicio.title }}
+            </h2>
+            <p class="text-white/70">
+              {{ servicio.desc.length > 100 ? `${servicio.desc.substring(0, 100)}...` : servicio.desc }}
+            </p>
+            <button v-if="servicio.desc.length > 100" class="text-blue-500 hover:opacity-80" @click="readMoreFunc(servicio.id, servicio.desc)">
+              Leer mas .
+            </button>
           </div>
-          <div class="grid gap-2">
-            <div class="px-3">
+
+          <div class="grid gap-3">
+            <div>
               <span v-if="loadingImages[servicio.id]" class="w-full h-252px grid place-content-center"><UnoIcon class="i-line-md-loading-loop w-10 h-10" /></span>
               <NuxtImg v-else :src="servicio.image" provider="cloudinary" width="400" height="300" class="rounded-lg" @error="loadingImages[servicio.id] = true" />
             </div>
