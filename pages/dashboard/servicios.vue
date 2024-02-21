@@ -71,7 +71,6 @@ const deleting = ref(false)
 const readMore = ref<Record<string, boolean>>({})
 const currentReadMoreId = ref('')
 const currentReadMoreDesc = ref('')
-const open = ref<Record<string, boolean>>({})
 const loadingImages = ref<Record<string, boolean>>({})
 const editImage = ref('')
 const editId = ref('')
@@ -212,7 +211,7 @@ function editMenu(servicio: Servicio) {
         No hay servicios disponibles
       </div>
       <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1 mb-5">
-        <div v-for="(servicio, index) in servicios" :key="servicio.id" class="grid p-4 sm:grid-rows-[1fr_auto] gap-2 bg-gris-900/30 rounded-lg">
+        <div v-for="servicio in servicios" :key="servicio.id" class="grid p-4 sm:grid-rows-[1fr_auto] gap-2 bg-gris-900/30 rounded-lg">
           <div class="flex flex-col items-start">
             <h2 class="font-medium text-lg">
               {{ servicio.title }}
@@ -230,22 +229,14 @@ function editMenu(servicio: Servicio) {
               <span v-if="loadingImages[servicio.id]" class="w-full h-252px grid place-content-center"><UnoIcon class="i-line-md-loading-loop w-10 h-10" /></span>
               <NuxtImg v-else :src="servicio.image" provider="cloudinary" width="400" height="300" class="rounded-lg" @error="loadingImages[servicio.id] = true" />
             </div>
-            <div class="relative inline-block text-left" @click="open[index] = !open[index]">
-              <div>
-                <button type="button" class="inline-flex justify-center w-full rounded-md px-4 py-2 bg-gris-900 border-gris-900 border text-sm font-medium">
-                  Acciones
-                  <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 12a2 2 0 110-4 2 2 0 010 4zm0-6a2 2 0 110-4 2 2 0 010 4zm0 12a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </div>
 
-              <div v-show="open[index]" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gris-900 ring-1 ring-black ring-opacity-5">
-                <div class="py-1" role="menu" aria-orientation="vertical">
-                  <a href="#" class="block px-4 py-2 text-sm hover:bg-gris-700" role="menuitem" @click="editMenu(servicio)">Editar</a>
-                  <a href="#" class="block px-4 py-2 text-sm hover:bg-gris-700" role="menuitem" @click="del(servicio.id, servicio.image)">Eliminar</a>
-                </div>
-              </div>
+            <div class="place-self-center p-2 bg-gris-900 rounded-lg z-2 px-3">
+              <button class="text-gray-300 pr-2 border-r-2 text-sm border-gris-700" @click="editMenu(servicio)">
+                Editar
+              </button>
+              <button class="text-red-500 hover:text-red-700 text-sm pl-2" @click="del(servicio.id, servicio.image)">
+                Eliminar
+              </button>
             </div>
           </div>
         </div>
