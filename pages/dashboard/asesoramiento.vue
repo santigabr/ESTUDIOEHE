@@ -112,11 +112,24 @@ async function edit(id: string) {
   const base64Images = editData.value.content.match(base64ImagePattern)
   const publicIds = extractPublicIds(editData.value.content)
   const hasErrors = Object.values(editErrors.value).some(error => error !== '')
+  const olderimages = oldcontent.value.filter(id => !publicIds.includes(id))
 
   if (!hasErrors) {
     adding.value = true
 
+    if (olderimages.length > 0) {
+      await $fetch('/api/images', {
+        method: 'DELETE',
+        body: olderimages,
+      })
+    }
+
     if (base64Images !== null) {
+      const images = await $fetch('/api/images', {
+        method: 'POST',
+        body: base64Images,
+      })
+
       let newContent = editData.value.content
 
       for (let i = 0; i < base64Images.length; i++)
@@ -155,8 +168,13 @@ async function edit(id: string) {
   }
 }
 
-async function del(id: string) {
+async function del(id: string, content: string) {
   deleting.value = true
+  const images = extractPublicIds(content)
+  await $fetch('/api/images', {
+    method: 'DELETE',
+    body: images,
+  })
   await $fetch(`/api/asesoramientos/${id}`, {
     method: 'DELETE',
   })
@@ -220,7 +238,7 @@ function editMenu(asesoramiento: Asesoramiento) {
             <button class="text-gray-300 pl-2 pr-2 border-r-2 text-sm border-gris-700" @click="editMenu(asesoramiento)">
               Editar
             </button>
-            <button class="text-red-500 hover:text-red-700 text-sm pl-2" @click="del(asesoramiento.id)">
+            <button class="text-red-500 hover:text-red-700 text-sm pl-2" @click="del(asesoramiento.id, asesoramiento.content)">
               Eliminar
             </button>
           </div>
