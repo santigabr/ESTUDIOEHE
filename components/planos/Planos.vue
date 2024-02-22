@@ -18,6 +18,8 @@ const deleting = ref(false)
 const adding = ref(false)
 const showimages = ref(false)
 const imagesId = ref<string[]>([])
+const showdesc = ref(false)
+const descData = ref('')
 
 const errors = ref({
   title: '',
@@ -131,6 +133,11 @@ function showImages(images: string[]) {
   showimages.value = true
   imagesId.value = images
 }
+
+function showDesc(desc: string) {
+  showdesc.value = true
+  descData.value = desc.replace(/<p><\/p>/g, '')
+}
 </script>
 
 <template>
@@ -151,23 +158,36 @@ function showImages(images: string[]) {
       No hay planos disponibles
     </div>
     <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1">
-      <div v-for="plano in planos" :key="plano.id" class="bg-gris-900/30 grid gap-2 p-4 rounded-lg">
-        <h2>{{ plano.title }}</h2>
-        <p>{{ plano.desc }}</p>
-        <button @click="showImages(plano.images)">
-          Ver Imagenes
-        </button>
+      <div v-for="plano in planos" :key="plano.id" class="relative grid gap-2 bg-gris-900/30 rounded-lg">
+        <div class="p-4 grid place-content-center h-70 font-medium z-1 text-center">
+          {{ plano.title.toLocaleUpperCase() }}
+        </div>
 
-        <button
-          @click="del(plano.id, plano.images)"
-        >
-          Eliminar
-        </button>
+        <div class="absolute bottom-4 place-self-center p-2 bg-gris-900 rounded-lg z-2 px-3">
+          <button class="text-gray-300 pr-2 border-r-2 text-sm border-gris-700" @click="showDesc(plano.desc)">
+            Descripción
+          </button>
+          <button class="text-gray-300 pl-2 pr-2 border-r-2 text-sm border-gris-700" @click="showImages(plano.images)">
+            Imágenes
+          </button>
+          <button class="text-red-500 hover:text-red-700 text-sm pl-2" @click="del(plano.id, plano.images)">
+            Eliminar
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <PlanosImagesModal :show="showimages" :images="imagesId" @close="showimages = false" />
+
+  <Modal v-if="showdesc" top-0>
+    <div class="grid">
+      <button class="place-self-end" @click="showdesc = !showdesc">
+        <UnoIcon class="i-ph-x-bold h-5 w-5" />
+      </button>
+    </div>
+    <div class="prose" v-html="descData" />
+  </Modal>
 
   <Modal v-if="addmenu">
     <div class="flex justify-between">
@@ -212,7 +232,7 @@ function showImages(images: string[]) {
       <label class="text-sm font-medium">Imágenes (hasta 5)</label>
       <div class="grid sm:grid-cols-3 grid-cols-2 gap-3">
         <div v-for="(square, index) in squares" :key="index">
-          <input :id="`file${index}`" :disabled="pending || adding" type="file" class="hidden" @change="uploadImage($event, index)">
+          <input :id="`file${index}`" accept="image/*" :disabled="pending || adding" type="file" class="hidden" @change="uploadImage($event, index)">
           <label :for="`file${index}`">
             <div class="bg-gris-900/30 h-30 rounded-lg grid place-content-center overflow-hidden" :class="[!images[index] ? 'hover:bg-gris-900 transition-colors duration-200' : '']">
               <img v-if="images[index]" :src="images[index]" alt="Imagen subida" class="z-2 transition-all duration-200 hover:opacity-40 hover:blur-sm object-contain w-full h-full">
