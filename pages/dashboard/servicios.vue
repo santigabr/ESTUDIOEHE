@@ -333,7 +333,7 @@ function editMenu(servicio: Servicio) {
       <label class="text-sm font-medium">Imagen</label>
       <div>
         <div>
-          <input id="file" :disabled="pending || adding" type="file" class="hidden" @change="uploadImage($event)">
+          <input id="file" accept="image/*" :disabled="pending || adding" type="file" class="hidden" @change="uploadImage($event)">
           <label for="file">
             <div class="bg-gris-900/30 h-50 sm:w-50 rounded-lg grid place-content-center overflow-hidden" :class="[!data.image ? 'hover:bg-gris-900 transition-colors duration-200' : '']">
               <img v-if="data.image" :src="data.image" alt="Imagen subida" class="z-2 transition-all duration-200 hover:opacity-40 hover:blur-sm object-contain w-full h-full">
