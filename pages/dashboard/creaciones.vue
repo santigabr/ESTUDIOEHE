@@ -131,7 +131,7 @@ function editing(creacion: { id: string, title: string, url: string }) {
         No hay creaciones disponibles
       </div>
       <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1 mb-5">
-        <div v-for="(creacion) in creaciones" :key="creacion.id" class="relative grid gap-2 bg-gris-900/30 rounded-lg">
+        <div v-for="creacion in creaciones" :key="creacion.id" class="relative grid gap-2 bg-gris-900/30 rounded-lg">
           <NuxtLink class="p-4 grid place-content-center h-70 font-medium z-1 text-center" :to="creacion.url" target="_BLANK">
             {{ creacion.title.toLocaleUpperCase() }}
           </NuxtLink>

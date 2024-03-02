@@ -1,175 +1,140 @@
 <script setup lang="ts">
 import type { Asesoramiento } from '~/types'
-
 import usePublicIdExtractor from '~/composables/extractPublicIds'
 
-const { data: asesoramientos, refresh, pending } = await useFetch('/api/asesoramientos')
-definePageMeta({
-  layout: 'dashboard',
+const { data: asesoramientos, refresh, pending } = useFetch('/api/asesoramientos')
+definePageMeta({ layout: 'dashboard' })
+
+interface Form {
+  data: { title: string, desc: string, content: string }
+  errors: { title: string, desc: string, content: string }
+}
+
+const form = ref<Form>({
+  data: { title: '', desc: '', content: '' },
+  errors: { title: '', desc: '', content: '' },
 })
 
-const data = ref({
-  title: '',
-  desc: '',
-  content: '',
-})
-
-const errors = ref({
-  title: '',
-  desc: '',
-  content: '',
-})
-
-const editData = ref({
-  title: '',
-  desc: '',
-  content: '',
-})
-
-const editErrors = ref({
-  title: '',
-  desc: '',
-  content: '',
+const editForm = ref<Form>({
+  data: { title: '', desc: '', content: '' },
+  errors: { title: '', desc: '', content: '' },
 })
 
 const { extractPublicIds } = usePublicIdExtractor()
-const addmenu = ref(false)
-const adding = ref(false)
-const deleting = ref(false)
-const oldcontent = ref<string[]>([])
-const content = ref('')
-const viewcontent = ref(false)
-const editmenu = ref(false)
-const editId = ref('')
+
+interface State {
+  addmenu: boolean
+  adding: boolean
+  deleting: boolean
+  readMore: Record<string, boolean>
+  currentReadMoreId: string
+  currentReadMoreDesc: string
+  oldcontent: string[]
+  content: string
+  viewcontent: boolean
+  editmenu: boolean
+  editId: string
+}
+
+const state = ref<State>({
+  addmenu: false,
+  adding: false,
+  deleting: false,
+  readMore: {},
+  currentReadMoreId: '',
+  currentReadMoreDesc: '',
+  oldcontent: [],
+  content: '',
+  viewcontent: false,
+  editmenu: false,
+  editId: '',
+})
+
+function readMoreFunc(id: string, desc: string) {
+  state.value.readMore[id] = true
+  state.value.currentReadMoreId = id
+  state.value.currentReadMoreDesc = desc
+}
+
+function closeReadMoreModal() {
+  state.value.readMore[state.value.currentReadMoreId] = false
+}
 
 async function add() {
-  errors.value = {
-    title: data.value.title === '' ? 'Coloca un titulo' : '',
-    desc: data.value.desc === '' ? 'Coloca una descripcion' : '',
-    content: data.value.content === '' ? 'Coloca el contenido' : '',
+  form.value.errors = {
+    title: form.value.data.title === '' ? 'Coloca un titulo' : '',
+    desc: form.value.data.desc === '' ? 'Coloca una descripcion' : '',
+    content: form.value.data.content === '' ? 'Coloca el contenido' : '',
   }
 
-  const base64ImagePattern = /data:image\/[a-zA-Z]*;base64,[^"]*/g
-  const base64Images = data.value.content.match(base64ImagePattern)
-
-  const hasErrors = Object.values(errors.value).some(error => error !== '')
-
+  const hasErrors = Object.values(form.value.errors).some(error => error !== '')
   if (!hasErrors) {
-    adding.value = true
-
-    if (base64Images !== null) {
-      const images = await $fetch('/api/images', {
-        method: 'POST',
-        body: base64Images,
-      })
-
-      let newContent = data.value.content
-
-      for (let i = 0; i < base64Images.length; i++)
-        newContent = newContent.replace(base64Images[i], `https://res.cloudinary.com/dy4qbq4wj/image/upload/EstudioEHE/${images[i]}`)
-
-      newContent = newContent.replace(/<p><\/p>/g, '')
-
-      await $fetch('/api/asesoramientos', {
-        method: 'POST',
-        body: {
-          title: data.value.title,
-          desc: data.value.desc,
-          content: newContent,
-        },
-      })
-    }
-    else {
-      await $fetch('/api/asesoramientos', {
-        method: 'POST',
-        body: {
-          title: data.value.title,
-          desc: data.value.desc,
-          content: data.value.content,
-        },
-      })
-    }
-
+    state.value.adding = true
+    await processForm(form.value.data)
     refresh()
-    data.value = {
-      title: '',
-      desc: '',
-      content: '',
-    }
-    adding.value = false
-    addmenu.value = false
+    form.value.data = { title: '', desc: '', content: '' }
+    state.value.adding = false
+    state.value.addmenu = false
   }
 }
 
 async function edit(id: string) {
-  editErrors.value = {
-    title: editData.value.title === '' ? 'Coloca un titulo' : '',
-    desc: editData.value.desc === '' ? 'Coloca una descripción' : '',
-    content: editData.value.content === '' ? 'Agrega el contenido' : '',
+  editForm.value.errors = {
+    title: editForm.value.data.title === '' ? 'Coloca un titulo' : '',
+    desc: editForm.value.data.desc === '' ? 'Coloca una descripción' : '',
+    content: editForm.value.data.content === '' ? 'Agrega el contenido' : '',
   }
 
-  const base64ImagePattern = /data:image\/[a-zA-Z]*;base64,[^"]*/g
-  const base64Images = editData.value.content.match(base64ImagePattern)
-  const publicIds = extractPublicIds(editData.value.content)
-  const hasErrors = Object.values(editErrors.value).some(error => error !== '')
-  const olderimages = oldcontent.value.filter(id => !publicIds.includes(id))
-
+  const hasErrors = Object.values(editForm.value.errors).some(error => error !== '')
   if (!hasErrors) {
-    adding.value = true
-
-    if (olderimages.length > 0) {
-      await $fetch('/api/images', {
-        method: 'DELETE',
-        body: olderimages,
-      })
-    }
-
-    if (base64Images !== null) {
-      const images = await $fetch('/api/images', {
-        method: 'POST',
-        body: base64Images,
-      })
-
-      let newContent = editData.value.content
-
-      for (let i = 0; i < base64Images.length; i++)
-        newContent = newContent.replace(base64Images[i], `https://res.cloudinary.com/dy4qbq4wj/image/upload/EstudioEHE/${images[i]}`)
-
-      newContent = newContent.replace(/<p><\/p>/g, '')
-
-      await $fetch(`/api/asesoramientos/${id}`, {
-        method: 'PUT',
-        body: {
-          title: editData.value.title,
-          desc: editData.value.desc,
-          content: newContent,
-        },
-      })
-    }
-    else {
-      await $fetch(`/api/asesoramientos/${id}`, {
-        method: 'PUT',
-        body: {
-          title: editData.value.title,
-          desc: editData.value.desc,
-          content: editData.value.content,
-        },
-      })
-    }
-
+    state.value.adding = true
+    await processForm(editForm.value.data, id)
     refresh()
-    data.value = {
-      title: '',
-      desc: '',
-      content: '',
-    }
-    adding.value = false
-    editmenu.value = false
+    state.value.adding = false
+    state.value.editmenu = false
+  }
+}
+
+async function processForm(data: { title: string, desc: string, content: string }, id = '') {
+  const base64ImagePattern = /data:image\/[a-zA-Z]*;base64,[^"]*/g
+  const base64Images = data.content.match(base64ImagePattern)
+
+  if (base64Images !== null) {
+    const images = await $fetch('/api/images', {
+      method: 'POST',
+      body: base64Images,
+    })
+
+    let newContent = data.content
+
+    for (let i = 0; i < base64Images.length; i++)
+      newContent = newContent.replace(base64Images[i], `https://res.cloudinary.com/dy4qbq4wj/image/upload/EstudioEHE/${images[i]}`)
+
+    newContent = newContent.replace(/<p><\/p>/g, '')
+
+    await ($fetch as any)(`/api/asesoramientos${id ? `/${id}` : ''}`, {
+      method: id ? 'PUT' : 'POST',
+      body: {
+        title: data.title,
+        desc: data.desc,
+        content: newContent,
+      },
+    })
+  }
+  else {
+    await ($fetch as any)(`/api/asesoramientos${id ? `/${id}` : ''}`, {
+      method: id ? 'PUT' : 'POST',
+      body: {
+        title: data.title,
+        desc: data.desc,
+        content: data.content,
+      },
+    })
   }
 }
 
 async function del(id: string, content: string) {
-  deleting.value = true
+  state.value.deleting = true
   const images = extractPublicIds(content)
   await $fetch('/api/images', {
     method: 'DELETE',
@@ -179,29 +144,29 @@ async function del(id: string, content: string) {
     method: 'DELETE',
   })
   refresh()
-  deleting.value = false
+  state.value.deleting = false
 }
 
 function viewContent(contentstring: string) {
-  viewcontent.value = true
-  content.value = contentstring
+  state.value.viewcontent = true
+  state.value.content = contentstring
 }
 
 function editMenu(asesoramiento: Asesoramiento) {
-  editmenu.value = true
+  state.value.editmenu = true
   const publicIds = extractPublicIds(asesoramiento.content)
 
   if (publicIds !== null)
-    oldcontent.value = publicIds
+    state.value.oldcontent = publicIds
 
-  editData.value = {
+  editForm.value.data = {
     title: asesoramiento.title,
     desc: asesoramiento.desc,
     content: asesoramiento.content,
   }
 
   if (asesoramiento.id)
-    editId.value = asesoramiento.id
+    state.value.editId = asesoramiento.id
 }
 </script>
 
@@ -212,26 +177,30 @@ function editMenu(asesoramiento: Asesoramiento) {
         Asesoramiento
       </h2>
       <div class="pb-5 pt-5 border-b border-gris-800">
-        <Button @click="addmenu = !addmenu">
+        <Button @click="state.addmenu = !state.addmenu">
           Add
           <UnoIcon class="i-ph-plus-bold h-4 w-4" />
         </Button>
       </div>
-      <div v-if="pending || deleting || adding" class="text-center pt-5">
+      <div v-if="pending || state.deleting || state.adding" class="text-center pt-5">
         Cargando...
       </div>
-      <div v-else-if="!pending && !deleting && asesoramientos?.length === 0" class="text-center pt-5">
+      <div v-else-if="!pending && !state.deleting && asesoramientos?.length === 0" class="text-center pt-5">
         No hay creaciones disponibles
       </div>
       <div v-else class="pt-5 grid md:grid-cols-3 gap-3 sm:grid-cols-2 grid-cols-1 mb-5">
-        <div v-for="asesoramiento in asesoramientos" :key="asesoramiento.id" class="relative grid gap-2 bg-gris-900/30 rounded-lg p-4 ">
-          <h2 class="font-medium text-lg">
+        <div v-for="asesoramiento in asesoramientos" :key="asesoramiento.id" class="relative h-70 grid place-content-center gap-2 bg-gris-900/30 rounded-lg p-4 ">
+          <h2 class="font-medium text-lg text-center">
             {{ asesoramiento.title }}
           </h2>
-          <p class="text-white/70">
-            {{ asesoramiento.desc }}
-          </p>
-          <div class="place-self-center p-2 bg-gris-900 rounded-lg z-2 px-3">
+          <div class="text-white/70 text-center flex flex-col">
+            {{ asesoramiento.desc.length > 100 ? `${asesoramiento.desc.substring(0, 100)}...` : asesoramiento.desc }}
+            <button v-if="asesoramiento.desc.length > 100" class="text-blue-500 hover:opacity-80" @click="readMoreFunc(asesoramiento.id, asesoramiento.desc)">
+              Leer mas .
+            </button>
+          </div>
+
+          <div class="absolute place-self-center bottom-4 p-2 bg-gris-900 rounded-lg z-2 px-3">
             <button class="text-gray-300 pr-2 border-r-2 text-sm border-gris-700" @click="viewContent(asesoramiento.content)">
               Ver mas
             </button>
@@ -247,84 +216,100 @@ function editMenu(asesoramiento: Asesoramiento) {
     </div>
   </div>
 
-  <Modal v-if="editmenu">
+  <Modal v-if="Object.values(state.readMore).some(value => value)">
     <div class="flex justify-between">
       <h1 class="text-xl font-medium underline underline-verde-1">
-        Asesoramiento
+        Leer Mas
       </h1>
-      <button @click="editmenu = !editmenu">
+      <button @click="closeReadMoreModal">
+        <UnoIcon class="i-ph-x-bold h-5 w-5" />
+      </button>
+    </div>
+    <div>
+      {{ state.currentReadMoreDesc }}
+    </div>
+  </Modal>
+
+  <Modal v-if="state.editmenu">
+    <div class="flex justify-between">
+      <p class="text-xl font-medium underline underline-verde-1">
+        Asesoramiento
+      </p>
+      <button @click="state.editmenu = !state.editmenu">
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Titulo</label>
-      <Input v-model="editData.title" :disabled="pending || adding" />
-      <div v-if="editErrors.title" class="text-red text-sm font-medium flex gap-1 items-center">
-        <UnoIcon class="i-ph-warning h-4 w-4" />{{ editErrors.title }} .
+      <Input v-model="editForm.data.title" :disabled="pending || state.adding" />
+      <div v-if="editForm.errors.title" class="text-red text-sm font-medium flex gap-1 items-center">
+        <UnoIcon class="i-ph-warning h-4 w-4" />{{ editForm.errors.title }} .
       </div>
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Descripción</label>
-      <Input v-model="editData.desc" textarea :disabled="pending || adding" />
-      <div v-if="editErrors.desc" class="text-red text-sm font-medium flex gap-1 items-center">
-        <UnoIcon class="i-ph-warning h-4 w-4" />{{ editErrors.desc }} .
+      <Input v-model="editForm.data.desc" textarea :disabled="pending || state.adding" />
+      <div v-if="editForm.errors.desc" class="text-red text-sm font-medium flex gap-1 items-center">
+        <UnoIcon class="i-ph-warning h-4 w-4" />{{ editForm.errors.desc }} .
       </div>
     </div>
     <div class="grid gap-3">
       <label class="text-sm font-medium">Contenido</label>
-      <TipTap v-model:modelValue="editData.content" image />
+      <TipTap v-model:modelValue="editForm.data.content" image />
     </div>
-    <span v-if="pending || adding">
+    <span v-if="pending || state.adding">
       <UnoIcon class="i-eos-icons-loading w-8 h-8" />
     </span>
-    <Button v-else :disabled="pending || adding" start rlg @click="edit(editId)">
+    <Button v-else :disabled="pending || state.adding" start rlg @click="edit(state.editId)">
       Editar
     </Button>
   </Modal>
 
-  <Modal v-if="viewcontent" top0>
-    <div class="grid">
-      <button class=" place-self-end" @click="viewcontent = !viewcontent">
-        <UnoIcon class="i-ph-x-bold h-5 w-5" />
-      </button>
-    </div>
-    <div class="prose" v-html="content" />
+  <Modal v-if="state.viewcontent" top0>
+    <p class="text-xl font-medium underline underline-verde-1">
+      Contenido
+    </p>
+    <div class="prose" v-html="state.content" />
+
+    <Button start rlg @click="state.viewcontent = !state.viewcontent">
+      Cerrar
+    </Button>
   </Modal>
 
-  <Modal v-if="addmenu">
+  <Modal v-if="state.addmenu">
     <div class="flex justify-between">
       <h1 class="text-xl font-medium underline underline-verde-1">
         Creaciones
       </h1>
-      <button @click="addmenu = !addmenu">
+      <button @click="state.addmenu = !state.addmenu">
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Titulo</label>
-      <Input v-model="data.title" :disabled="pending || adding" />
-      <div v-if="errors.title" class="text-red text-sm font-medium flex gap-1 items-center">
-        <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.title }} .
+      <Input v-model="form.data.title" :disabled="pending || state.adding" />
+      <div v-if="form.errors.title" class="text-red text-sm font-medium flex gap-1 items-center">
+        <UnoIcon class="i-ph-warning h-4 w-4" />{{ form.errors.title }} .
       </div>
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Descripción</label>
-      <Input v-model="data.desc" :disabled="pending || adding" />
-      <div v-if="errors.desc" class="text-red text-sm font-medium flex gap-1 items-center">
-        <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.desc }} .
+      <Input v-model="form.data.desc" :disabled="pending || state.adding" />
+      <div v-if="form.errors.desc" class="text-red text-sm font-medium flex gap-1 items-center">
+        <UnoIcon class="i-ph-warning h-4 w-4" />{{ form.errors.desc }} .
       </div>
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Contenido</label>
-      <TipTap v-model:modelValue="data.content" image />
-      <div v-if="errors.content" class="text-red text-sm font-medium flex gap-1 items-center">
-        <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.content }} .
+      <TipTap v-model:modelValue="form.data.content" image />
+      <div v-if="form.errors.content" class="text-red text-sm font-medium flex gap-1 items-center">
+        <UnoIcon class="i-ph-warning h-4 w-4" />{{ form.errors.content }} .
       </div>
     </div>
-    <span v-if="pending || adding">
+    <span v-if="pending || state.adding">
       <UnoIcon class="i-eos-icons-loading w-8 h-8" />
     </span>
-    <Button v-else :disabled="pending || adding" start rlg @click="add">
+    <Button v-else :disabled="pending || state.adding" start rlg @click="add">
       Agregar
     </Button>
   </Modal>
