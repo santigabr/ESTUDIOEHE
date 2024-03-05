@@ -2,38 +2,17 @@
 import type { Servicio } from '~/types'
 
 const { data: servicios, refresh, pending } = await useFetch('/api/servicios')
+definePageMeta({ layout: 'dashboard' })
 
-definePageMeta({
-  layout: 'dashboard',
-})
+const createEmptyServicio = (): Servicio => ({ title: '', desc: '', image: '' })
 
-const data = ref<Servicio>({
-  title: '',
-  desc: '',
-  image: '',
-})
+const data = ref(createEmptyServicio())
+const errors = ref(createEmptyServicio())
+const editData = ref(createEmptyServicio())
+const editErrors = ref(createEmptyServicio())
 
-const errors = ref({
-  title: '',
-  desc: '',
-  image: '',
-})
-
-const editData = ref<Servicio>({
-  title: '',
-  desc: '',
-  image: '',
-})
-
-const editErrors = ref({
-  title: '',
-  desc: '',
-  image: '',
-})
-
-function uploadImage(event: Event) {
+function uploadImage(event: Event, target: Ref<Servicio>) {
   const inputElement = event.target as HTMLInputElement
-
   if (inputElement.files) {
     const file = inputElement.files[0]
     if (file) {
@@ -41,24 +20,7 @@ function uploadImage(event: Event) {
       reader.onloadend = function () {
         const base64String = (reader.result as string).split(',')[1]
         const preparedBase64String = `data:${file.type};base64,${base64String}`
-        data.value.image = preparedBase64String
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-}
-
-function uploadEditImage(event: Event) {
-  const inputElement = event.target as HTMLInputElement
-
-  if (inputElement.files) {
-    const file = inputElement.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = function () {
-        const base64String = (reader.result as string).split(',')[1]
-        const preparedBase64String = `data:${file.type};base64,${base64String}`
-        editData.value.image = preparedBase64String
+        target.value.image = preparedBase64String
       }
       reader.readAsDataURL(file)
     }
@@ -86,16 +48,22 @@ function closeReadMoreModal() {
   readMore.value[currentReadMoreId.value] = false
 }
 
-async function add() {
+function validate(target: Ref<Servicio>, errors: Ref<Servicio>) {
   errors.value = {
-    title: data.value.title === '' ? 'Coloca un titulo' : '',
-    desc: data.value.desc === '' ? 'Coloca una descripción' : '',
-    image: data.value.image.length === 0 ? 'Agrega la imagen' : '',
+    title: target.value.title === '' ? 'Coloca un titulo' : '',
+    desc: target.value.desc === '' ? 'Coloca una descripción' : '',
+    image: target.value.image.length === 0 ? 'Agrega la imagen' : '',
   }
+  return !Object.values(errors.value).some(error => error !== '')
+}
 
-  const hasErrors = Object.values(errors.value).some(error => error !== '')
+function reset(target: Ref<Servicio>, errors: Ref<Servicio>) {
+  target.value = createEmptyServicio()
+  errors.value = createEmptyServicio()
+}
 
-  if (!hasErrors) {
+async function add() {
+  if (validate(data, errors)) {
     adding.value = true
 
     const uploadedImage = await $fetch('/api/images/1', {
@@ -105,37 +73,23 @@ async function add() {
 
     if (uploadedImage) {
       await $fetch('/api/servicios', {
-
         method: 'POST',
         body: {
           title: data.value.title,
           desc: data.value.desc,
           image: uploadedImage,
         },
-
       })
     }
     refresh()
-    data.value = {
-      title: '',
-      desc: '',
-      image: '',
-    }
+    reset(data, errors)
     adding.value = false
     addmenu.value = false
   }
 }
 
 async function edit(id: string) {
-  editErrors.value = {
-    title: editData.value.title === '' ? 'Coloca un titulo' : '',
-    desc: editData.value.desc === '' ? 'Coloca una descripción' : '',
-    image: editData.value.image.length === 0 ? 'Agrega la imagen' : '',
-  }
-
-  const hasErrors = Object.values(errors.value).some(error => error !== '')
-
-  if (!hasErrors) {
+  if (validate(editData, editErrors)) {
     adding.value = true
 
     const editingImage = await $fetch('/api/images/1', {
@@ -145,22 +99,16 @@ async function edit(id: string) {
 
     if (editingImage) {
       await $fetch(`/api/servicios/${id}`, {
-
         method: 'PUT',
         body: {
           title: editData.value.title,
           desc: editData.value.desc,
           image: editingImage,
         },
-
       })
     }
     refresh()
-    editData.value = {
-      title: '',
-      desc: '',
-      image: '',
-    }
+    reset(editData, editErrors)
     adding.value = false
     menu.value = false
   }
@@ -181,11 +129,7 @@ async function del(id: string, image: string) {
 
 function editMenu(servicio: Servicio) {
   menu.value = true
-  editData.value = {
-    title: servicio.title,
-    desc: servicio.desc,
-    image: servicio.image,
-  }
+  editData.value = { ...servicio }
   editImage.value = servicio.image
   if (servicio.id)
     editId.value = servicio.id
@@ -246,9 +190,9 @@ function editMenu(servicio: Servicio) {
 
   <Modal v-if="menu">
     <div class="flex justify-between">
-      <h1 class="text-xl font-medium underline underline-verde-1">
+      <h2 class="text-xl font-medium underline underline-verde-1">
         Editar
-      </h1>
+      </h2>
       <button @click="menu = !menu">
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>
@@ -271,7 +215,7 @@ function editMenu(servicio: Servicio) {
       <label class="text-sm font-medium">Imagen</label>
       <div>
         <div>
-          <input id="file" :disabled="pending || adding" type="file" class="hidden" @change="uploadEditImage($event)">
+          <input id="file" :disabled="pending || adding" type="file" class="hidden" @change="uploadImage($event, ref(editData))">
           <label for="file">
             <div class="bg-gris-900/30 h-50 sm:w-50 rounded-lg grid place-content-center overflow-hidden" :class="[!data.image ? 'hover:bg-gris-900 transition-colors duration-200' : '']">
               <NuxtImg v-if="editData.image" :src="editData.image" alt="Imagen subida" class="z-2 transition-all duration-200 hover:opacity-40 hover:blur-sm object-contain w-full h-full" provider="cloudinary" />
@@ -294,9 +238,9 @@ function editMenu(servicio: Servicio) {
 
   <Modal v-if="Object.values(readMore).some(value => value)">
     <div class="flex justify-between">
-      <h1 class="text-xl font-medium underline underline-verde-1">
+      <h2 class="text-xl font-medium underline underline-verde-1">
         Leer Mas
-      </h1>
+      </h2>
       <button @click="closeReadMoreModal">
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>
@@ -308,9 +252,9 @@ function editMenu(servicio: Servicio) {
 
   <Modal v-if="addmenu">
     <div class="flex justify-between">
-      <h1 class="text-xl font-medium underline underline-verde-1">
+      <h2 class="text-xl font-medium underline underline-verde-1">
         Servicios
-      </h1>
+      </h2>
       <button @click="addmenu = !addmenu">
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>
@@ -333,7 +277,7 @@ function editMenu(servicio: Servicio) {
       <label class="text-sm font-medium">Imagen</label>
       <div>
         <div>
-          <input id="file" accept="image/*" :disabled="pending || adding" type="file" class="hidden" @change="uploadImage($event)">
+          <input id="file" accept="image/*" :disabled="pending || adding" type="file" class="hidden" @change="uploadImage($event, ref(data))">
           <label for="file">
             <div class="bg-gris-900/30 h-50 sm:w-50 rounded-lg grid place-content-center overflow-hidden" :class="[!data.image ? 'hover:bg-gris-900 transition-colors duration-200' : '']">
               <img v-if="data.image" :src="data.image" alt="Imagen subida" class="z-2 transition-all duration-200 hover:opacity-40 hover:blur-sm object-contain w-full h-full">

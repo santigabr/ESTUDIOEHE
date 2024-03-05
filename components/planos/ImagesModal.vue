@@ -21,9 +21,9 @@ function selectImage(index: number) {
 <template>
   <Modal v-if="props.show">
     <div class="flex justify-between">
-      <h1 class="text-xl font-medium underline underline-verde-1">
+      <h2 class="text-xl font-medium underline underline-verde-1">
         Imágenes
-      </h1>
+      </h2>
       <button @click="close()">
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>

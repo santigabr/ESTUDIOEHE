@@ -37,7 +37,7 @@ const menu = ref(false)
       <NuxtLink to="/" class="text-5xl font-custom text-verde-1">
         ehe
       </NuxtLink>
-      <nav class="sm:block hidden">
+      <nav class="md:block hidden">
         <ul class="gap-x-4 flex">
           <li v-for="link in links" :key="link.href">
             <NuxtLink :to="link.href" class="text-sm buttons px-2 font-medium">
@@ -54,13 +54,14 @@ const menu = ref(false)
         <button v-if="!$auth.user">
           <UnoIcon class="i-ph-bag-light  w-25px h-25px buttons" />
         </button>
-        <button class="sm:hidden" @click="menu = !menu">
+        <button class="md:hidden" @click="menu = !menu">
           <UnoIcon class="i-ph-list w-25px h-25px buttons" />
         </button>
       </div>
     </header>
   </div>
-  <div v-if="menu === true" class="absolute z-40 sm:hidden top-0 h-full px-6 bg-gris-900/30 backdrop-blur-lg w-full">
+
+  <div v-if="menu === true" class="fixed top-0 z-40 md:hidden h-full px-6 bg-gris-900/30 backdrop-blur-lg w-full">
     <div class="h-64px flex items-center justify-end">
       <button class="" @click="menu = !menu">
         <UnoIcon class="i-ph-x w-25px h-25px buttons" />

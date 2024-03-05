@@ -3,11 +3,13 @@ import type { Asesoramiento } from '~/types'
 import usePublicIdExtractor from '~/composables/extractPublicIds'
 
 const { data: asesoramientos, refresh, pending } = useFetch('/api/asesoramientos')
-definePageMeta({ layout: 'dashboard' })
+definePageMeta({
+  layout: 'dashboard',
+})
 
 interface Form {
-  data: { title: string, desc: string, content: string }
-  errors: { title: string, desc: string, content: string }
+  data: Asesoramiento
+  errors: Asesoramiento
 }
 
 const form = ref<Form>({
@@ -218,9 +220,9 @@ function editMenu(asesoramiento: Asesoramiento) {
 
   <Modal v-if="Object.values(state.readMore).some(value => value)">
     <div class="flex justify-between">
-      <h1 class="text-xl font-medium underline underline-verde-1">
+      <h2 class="text-xl font-medium underline underline-verde-1">
         Leer Mas
-      </h1>
+      </h2>
       <button @click="closeReadMoreModal">
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>
@@ -278,9 +280,9 @@ function editMenu(asesoramiento: Asesoramiento) {
 
   <Modal v-if="state.addmenu">
     <div class="flex justify-between">
-      <h1 class="text-xl font-medium underline underline-verde-1">
+      <h2 class="text-xl font-medium underline underline-verde-1">
         Creaciones
-      </h1>
+      </h2>
       <button @click="state.addmenu = !state.addmenu">
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>
