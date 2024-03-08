@@ -1,5 +1,3 @@
 <template>
-  <div>
-    Creaciones
-  </div>
+  <div />
 </template>

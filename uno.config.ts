@@ -37,7 +37,7 @@ export default defineConfig({
     presetWebFonts({
       provider: 'google',
       fonts: {
-        sans: 'Inter:400,500,600,700,800',
+        sans: 'Inter:300,400,500,600,700,800',
         custom: 'Dawning of a New Day',
         headings: 'Syne:700',
       },
