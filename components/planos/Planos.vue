@@ -13,7 +13,6 @@ const state = reactive({
   size: '',
   bathrooms: 0,
   rooms: 0,
-  suites: 0,
   garages: 0,
   price: '',
   deleting: false,
@@ -40,7 +39,6 @@ function resetState() {
     bathrooms: 0,
     rooms: 0,
     garages: 0,
-    suites: 0,
     images: [],
     files: [],
     price: '',
@@ -111,7 +109,6 @@ async function add() {
         bathrooms: state.bathrooms,
         rooms: state.rooms,
         garages: state.garages,
-        suites: state.suites,
         images: uploadedImages,
         files: uploadedFiles,
         price: state.price,
@@ -231,7 +228,6 @@ function showDesc(desc: string) {
     <Counter :disabled="pending || state.adding || state.deleting" :value="state.bathrooms" label="Baños" @update:value="state.bathrooms = $event" />
     <Counter :disabled="pending || state.adding || state.deleting" :value="state.rooms" label="Habitaciones" @update:value="state.rooms = $event" />
     <Counter :disabled="pending || state.adding || state.deleting" :value="state.garages" label="Garages" @update:value="state.garages = $event" />
-    <Counter :disabled="pending || state.adding || state.deleting" :value="state.suites" label="Suites" @update:value="state.suites = $event" />
     <div class="grid gap-3">
       <label class="text-sm font-medium">Imágenes (hasta 5)</label>
       <div class="grid sm:grid-cols-3 grid-cols-2 gap-3">

@@ -160,9 +160,7 @@ function editMenu(servicio: Servicio) {
             <h2 class="font-medium text-lg">
               {{ servicio.title }}
             </h2>
-            <p class="text-white/70">
-              {{ servicio.desc.length > 100 ? `${servicio.desc.substring(0, 100)}...` : servicio.desc }}
-            </p>
+            <div class="text-white/70" v-html=" servicio.desc.length > 100 ? `${servicio.desc.substring(0, 100)}...` : servicio.desc " />
             <button v-if="servicio.desc.length > 100" class="text-blue-500 hover:opacity-80" @click="readMoreFunc(servicio.id, servicio.desc)">
               Leer mas .
             </button>
@@ -206,7 +204,7 @@ function editMenu(servicio: Servicio) {
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Descripción</label>
-      <Input v-model="editData.desc" textarea :disabled="pending || adding" />
+      <TipTap v-model:modelValue="editData.desc" />
       <div v-if="editErrors.desc" class="text-red text-sm font-medium flex gap-1 items-center">
         <UnoIcon class="i-ph-warning h-4 w-4" />{{ editErrors.desc }} .
       </div>
@@ -236,7 +234,7 @@ function editMenu(servicio: Servicio) {
     </Button>
   </Modal>
 
-  <Modal v-if="Object.values(readMore).some(value => value)">
+  <Modal v-if="Object.values(readMore).some(value => value)" top0>
     <div class="flex justify-between">
       <h2 class="text-xl font-medium underline underline-verde-1">
         Leer Mas
@@ -245,9 +243,7 @@ function editMenu(servicio: Servicio) {
         <UnoIcon class="i-ph-x-bold h-5 w-5" />
       </button>
     </div>
-    <div>
-      {{ currentReadMoreDesc }}
-    </div>
+    <div class="prose" v-html="currentReadMoreDesc" />
   </Modal>
 
   <Modal v-if="addmenu">
@@ -268,7 +264,7 @@ function editMenu(servicio: Servicio) {
     </div>
     <div class="grid gap-1">
       <label class="text-sm font-medium">Descripción</label>
-      <Input v-model="data.desc" textarea :disabled="pending || adding" />
+      <TipTap v-model:modelValue="data.desc" :disabled="pending || adding" />
       <div v-if="errors.desc" class="text-red text-sm font-medium flex gap-1 items-center">
         <UnoIcon class="i-ph-warning h-4 w-4" />{{ errors.desc }} .
       </div>

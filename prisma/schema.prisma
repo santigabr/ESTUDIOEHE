@@ -35,7 +35,6 @@ model Planos {
   bathrooms Int
   rooms     Int
   garages   Int
-  suites    Int
   images    String[]
   files     String[]
   price     String
