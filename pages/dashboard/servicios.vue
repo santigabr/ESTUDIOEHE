@@ -160,7 +160,25 @@ function editMenu(servicio: Servicio) {
             <h2 class="font-medium text-lg">
               {{ servicio.title }}
             </h2>
-            <div class="text-white/70" v-html=" servicio.desc.length > 100 ? `${servicio.desc.substring(0, 100)}...` : servicio.desc " />
+            <p class="text-white/70">
+              {{
+                servicio.desc.length > 100 ? `${
+                  servicio.desc
+                    .replace(/<h2>.*?<\/h2>/g, '')
+                    .replace(/<h3>.*?<\/h3>/g, '')
+                    .replace(/<li>.*?<\/li>/g, '')
+                    .replace(/<ul>.*?<\/ul>/g, '')
+                    .replace(/(:)/g, ': ')
+                    .replace(/<\/?p>/g, '')
+                    .substring(0, 100)}...`
+                : servicio.desc.replace(/<h2>.*?<\/h2>/g, '')
+                  .replace(/<h3>.*?<\/h3>/g, '')
+                  .replace(/<li>.*?<\/li>/g, '')
+                  .replace(/<ul>.*?<\/ul>/g, '')
+                  .replace(/(:)/g, ': ')
+                  .replace(/<\/?p>/g, '')
+              }}
+            </p>
             <button v-if="servicio.desc.length > 100" class="text-blue-500 hover:opacity-80" @click="readMoreFunc(servicio.id, servicio.desc)">
               Leer mas .
             </button>

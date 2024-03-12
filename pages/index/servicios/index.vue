@@ -26,7 +26,25 @@ const { data: servicios, pending } = await useFetch('/api/servicios')
                     </h5>
                   </NuxtLink>
 
-                  <div class="mb-3 font-400 text-white/70" v-html="servicio.desc.length > 100 ? `${servicio.desc.substring(0, 100)}...` : servicio.desc" />
+                  <p class="mb-3 font-400 text-white/70">
+                    {{
+                      servicio.desc.length > 100 ? `${
+                        servicio.desc
+                          .replace(/<h2>.*?<\/h2>/g, '')
+                          .replace(/<h3>.*?<\/h3>/g, '')
+                          .replace(/<li>.*?<\/li>/g, '')
+                          .replace(/<ul>.*?<\/ul>/g, '')
+                          .replace(/(:)/g, ': ')
+                          .replace(/<\/?p>/g, '')
+                          .substring(0, 100)}...`
+                      : servicio.desc.replace(/<h2>.*?<\/h2>/g, '')
+                        .replace(/<h3>.*?<\/h3>/g, '')
+                        .replace(/<li>.*?<\/li>/g, '')
+                        .replace(/<ul>.*?<\/ul>/g, '')
+                        .replace(/(:)/g, ': ')
+                        .replace(/<\/?p>/g, '')
+                    }}
+                  </p>
                 </div>
               </div>
               <NuxtLink :to="`/servicios/${servicio.id}`" class="inline-flex mx-5 mb-5 place-self-start items-center px-3 py-2 text-sm font-medium text-center rounded-lg bg-verde-1 hover:bg-verde-1">
