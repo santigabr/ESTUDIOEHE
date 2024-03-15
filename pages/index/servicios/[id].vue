@@ -5,7 +5,7 @@ const { data: servicio } = await useFetch(`/api/servicios/${route.params.id}`)
 
 <template>
   <div class="grid gap-10 max-w-1200px mx-auto px-6 py-5 md:py-15 lg:py-20">
-    <NuxtLink to="/servicios" class="flex items-center gap-1">
+    <NuxtLink to="/servicios" class="flex items-center gap-1 font-medium">
       <UnoIcon class="i-ph-arrow-left-bold h-5 w-5" />
       Volver
     </NuxtLink>

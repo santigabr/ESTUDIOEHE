@@ -40,7 +40,7 @@ const caracteristicas = {
 
 <template>
   <div class="grid gap-10 max-w-1200px mx-auto px-6 py-5 md:py-15 lg:py-20">
-    <NuxtLink to="/planos" class="flex items-center gap-1 sm:sticky sm:top-144px">
+    <NuxtLink to="/planos" class="flex items-center gap-1 sm:sticky sm:top-144px font-medium">
       <UnoIcon class="i-ph-arrow-left-bold h-5 w-5" />
       Volver
     </NuxtLink>
@@ -60,11 +60,11 @@ const caracteristicas = {
             <div class="relative mb-6 lg:mb-10 lg:h-96">
               <NuxtImg :src="selectedImage" class="object-cover w-full lg:h-full rounded-lg shadow border-gris-800/30 border" provider="cloudinary" />
               <div class="absolute transform -translate-y-1/2 w-full top-1/2 flex justify-between px-2">
-                <button class="grid place-content-center h-40px w-40px rounded-full bg-verde-1/30 hover:bg-verde-1" @click="navigate(-1)">
-                  <UnoIcon class="i-material-symbols-chevron-left text-black/50 hover:text-black h-7 w-7" />
+                <button class="grid place-content-center h-40px w-40px rounded-full bg-verde-1/30 hover:bg-verde-1 transition-colors duration-200" @click="navigate(-1)">
+                  <UnoIcon class="i-material-symbols-chevron-left text-black/70 h-7 w-7" />
                 </button>
-                <button class="grid place-content-center h-40px w-40px rounded-full bg-verde-1/30 hover:bg-verde-1" @click="navigate(1)">
-                  <UnoIcon class="i-material-symbols-chevron-right text-black/50 hover:text-black h-7 w-7" />
+                <button class="grid place-content-center h-40px w-40px rounded-full bg-verde-1/30 hover:bg-verde-1 transition-colors duration-200" @click="navigate(1)">
+                  <UnoIcon class="i-material-symbols-chevron-right text-black/70 h-7 w-7" />
                 </button>
               </div>
             </div>
@@ -102,8 +102,8 @@ const caracteristicas = {
           </Button>
         </div>
 
-        <div class="border-t border-gris-800 mt-10">
-          <button class="text-xl w-full flex justify-between flex items-center pt-6" @click="desc = !desc">
+        <div class="border-y border-gris-800 mt-10">
+          <button class="text-xl w-full flex justify-between flex items-center py-4" @click="desc = !desc">
             Descripción
             <UnoIcon class="h-7 w-7" :class="[desc ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down ']" />
           </button>
